@@ -1,0 +1,6 @@
+Employee ID   Name            Age   Department   Salary  
+101           Alice Johnson   29    HR           55000  
+102           Bob Smith       35    IT           75000  
+103           Charlie Lee     40    Finance      67000  
+104           David Brown     28    Marketing    62000  
+105           Eve Adams       32    Sales        58000  
