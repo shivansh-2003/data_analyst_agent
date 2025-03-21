@@ -9,15 +9,8 @@ import base64
 from io import BytesIO
 import tempfile
 
-from data_agent.agent import DataAnalystAgent
-from data_agent.settings import SUPPORTED_FILE_FORMATS
-
-# Initialize the agent
-@st.cache_resource
-def get_agent():
-    return DataAnalystAgent()
-
-agent = get_agent()
+from agent import DataAnalystAgent
+from settings import SUPPORTED_FILE_FORMATS
 
 # Set page configuration
 st.set_page_config(
@@ -26,6 +19,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize the agent
+@st.cache_resource
+def get_agent():
+    return DataAnalystAgent()
+
+agent = get_agent()
 
 # Custom CSS for styling
 st.markdown("""
@@ -319,7 +319,7 @@ with tab1:
     if submit_button and query:
         with st.spinner("Processing query..."):
             try:
-                result = agent.process_query(query)
+                result = agent.process_query(query, allow_dangerous_code=True)
                 
                 # Add to conversation history
                 st.session_state.conversation_history.append({"role": "user", "content": query})

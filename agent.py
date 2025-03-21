@@ -3,9 +3,9 @@ import logging
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
-from data_agent.document_processor import DocumentProcessorFactory
-from data_agent.plotter import Visualizer
-from data_agent.llm_utils import LLMManager
+from document_processor import DocumentProcessorFactory
+from plotter import Visualizer
+from llm_utils import LLMManager
 from langchain.memory import ConversationBufferMemory
 
 # Configure logging
@@ -61,29 +61,45 @@ class DataAnalystAgent:
     
     def process_query(self, query: str) -> Dict[str, Any]:
         """Process user query and return response with optional visualization"""
-        if self.df is None or self.agent is None:
+        if self.df is None:
             return {"answer": "No data loaded. Please upload a document first."}
-        
-        logger.info(f"Processing query: {query}")
         
         # Add query to conversation memory
         self.conversation_memory.chat_memory.add_user_message(query)
         
         try:
             # Process query using the pandas agent
+            
             result = self.agent.run(query)
             self.conversation_memory.chat_memory.add_ai_message(result)
             
             # Check if visualization is needed
-            visualization_keywords = [
-                "plot", "graph", "chart", "visualize", "visualization", 
-                "show", "display", "histogram", "bar", "line", "scatter", "pie"
-            ]
+            visualization_keywords = ["plot", "graph", "chart", "visualize", "visualization", "show"]
             needs_viz = any(keyword in query.lower() for keyword in visualization_keywords)
             
             if needs_viz:
                 # Use LLM to determine visualization parameters
-                viz_params = self.llm_manager.analyze_for_visualization(query, result)
+                viz_prompt = f"""
+                Based on the query "{query}" and the result "{result}", determine the appropriate visualization parameters:
+                1. Plot type (bar, line, scatter, pie, histogram)
+                2. X-axis column
+                3. Y-axis column (if applicable)
+                4. Title
+                5. Any additional parameters
+                
+                Return in JSON format:
+                {{
+                    "plot_type": "...",
+                    "x": "...",
+                    "y": "...",
+                    "title": "...",
+                    "color": "..." (optional),
+                    "size": "..." (optional)
+                }}
+                """
+                
+                viz_response = self.llm_manager.invoke(viz_prompt)
+                viz_params = eval(viz_response.content)  # Convert string to dict
                 
                 # Create visualization
                 fig = self.visualizer.create_visualization(**viz_params)
@@ -98,7 +114,6 @@ class DataAnalystAgent:
             
         except Exception as e:
             error_msg = f"Error processing query: {str(e)}"
-            logger.error(error_msg)
             self.conversation_memory.chat_memory.add_ai_message(error_msg)
             return {"answer": error_msg}
     

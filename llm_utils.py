@@ -7,8 +7,8 @@ from langchain.agents import AgentType
 from langchain_openai import ChatOpenAI
 from langchain.chains import ConversationChain
 from langchain.tools import BaseTool
-
-from data_agent.settings import OPENAI_API_KEY, DEFAULT_MODEL, DEFAULT_TEMPERATURE
+import pandas as pd
+from settings import OPENAI_API_KEY, DEFAULT_MODEL, DEFAULT_TEMPERATURE
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -56,9 +56,10 @@ class LLMManager:
                 self.llm,
                 df,
                 verbose=True,
-                agent_type=AgentType.OPENAI_FUNCTIONS,
+                agent_type="tool-calling",
                 handle_parsing_errors=True,
-                memory=memory
+                memory=memory,
+                allow_dangerous_code=True
             )
             return agent
         except Exception as e:

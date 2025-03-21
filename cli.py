@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 
-from data_agent.agent import DataAnalystAgent
+from agent import DataAnalystAgent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
